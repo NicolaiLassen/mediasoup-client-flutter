@@ -123,11 +123,25 @@ class Device {
   // /// Create a new Device to connect to mediasoup server.
   // /// 
   // /// @throws {UnsupportedError} if device is not supported.
-  // Device() {
-  //   logger.debug('constructor()');
-
-  //   //
-  // }
+  Device() : super() {
+  // HANDLER FAC MOVED TO TRANSPORT
+  // Device({HandlerInterface Function() handlerFactory}) : super() {
+    // if (handlerFactory != null) {
+    //   this._handlerFactory = handlerFactory;
+    // } else {
+    //   if (Platform.isAndroid) {
+    //     this._handlerFactory = AndroidHandler.createFactory();
+    //     return;
+    //   } else if (Platform.isIOS) {
+    //     this._handlerFactory = IOSHandler.createFactory();
+    //     return;
+    //   }
+    // }
+    //
+    // final handler = this._handlerFactory();
+    // this._handlerName = handler.name;
+    // handler.close();
+  }
 
   /// Whether we can produce audio/video.
   /// 

@@ -312,7 +312,7 @@ class RtpEncodingParameters extends RTCRtpEncoding {
    */
   bool adaptivePtime;
   Priority priority;
-  Priority netoworkPriority;
+  Priority networkPriority;
 
   RtpEncodingParameters({
     this.codecPayloadType,
@@ -321,7 +321,7 @@ class RtpEncodingParameters extends RTCRtpEncoding {
     this.scalabilityMode,
     this.adaptivePtime,
     this.priority,
-    this.netoworkPriority,
+    this.networkPriority,
     bool active,
     int maxBitrate,
     int maxFramerate,
@@ -349,7 +349,7 @@ class RtpEncodingParameters extends RTCRtpEncoding {
       scalabilityMode: next.scalabilityMode ?? prev.scalabilityMode,
       adaptivePtime: next.adaptivePtime ?? prev.adaptivePtime,
       priority: next.priority ?? prev.priority,
-      netoworkPriority: next.netoworkPriority ?? prev.netoworkPriority,
+      networkPriority: next.networkPriority ?? prev.networkPriority,
       active: next.active ?? prev.active,
       maxBitrate: next.maxBitrate ?? prev.maxBitrate,
       maxFramerate: next.maxFramerate ?? prev.maxFramerate,

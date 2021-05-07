@@ -46,7 +46,7 @@ class Native extends HandlerInterface {
 
   Native() : super();
 
-  void _assertSendRirection() {
+  void _assertSendDirection() {
     if (_direction != Direction.send) {
       throw ('method can just be called for handlers with "send" direction');
     }
@@ -371,7 +371,7 @@ class Native extends HandlerInterface {
 
   @override
   Future<HandlerSendResult> send(HandlerSendOptions options) async {
-    _assertSendRirection();
+    _assertSendDirection();
 
     logger.debug('send() [kind:${options.track.kind}, track.id:${options.track.id}]');
 
@@ -465,7 +465,7 @@ class Native extends HandlerInterface {
   @override
   Future<HandlerSendDataChannelResult> sendDataChannel(
       SctpStreamParameters options) async {
-    _assertSendRirection();
+    _assertSendDirection();
 
     RTCDataChannelInit initOptions = RTCDataChannelInit();
     initOptions.negotiated = true;
@@ -552,7 +552,7 @@ class Native extends HandlerInterface {
 
   @override
   Future<void> stopSending(String localId) async {
-    _assertSendRirection();
+    _assertSendDirection();
 
     logger.debug('stopSending() [localId:$localId]');
 
