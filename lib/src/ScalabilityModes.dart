@@ -7,14 +7,14 @@ class ScalabilityMode {
   const ScalabilityMode({this.spatialLayers, this.temporalLayers});
 
   static ScalabilityMode parse(String scalabilityMode) {
-    List match =
+    List<RegExpMatch> match =
         scalabilityModeRegex.allMatches(scalabilityMode ?? '').toList();
 
     // FIXME: fix regexp
     if (match.isNotEmpty && false) {
       return ScalabilityMode(
-        spatialLayers: int.parse(match[0]),
-        temporalLayers: int.parse(match[1]),
+        spatialLayers: int.parse(match[0].group(1)),
+        temporalLayers: int.parse(match[0].group(2)),
       );
     } else {
       return ScalabilityMode(

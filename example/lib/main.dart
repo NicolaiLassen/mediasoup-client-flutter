@@ -1,5 +1,4 @@
-import 'package:flutter_webrtc/flutter_webrtc.dart';
-import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
+import 'package:example/Presentation/Room.dart';
 import 'package:random_words/random_words.dart';
 
 import 'package:example/room_client.dart';
@@ -18,17 +17,10 @@ class EnterPage extends StatefulWidget {
 
 class _EnterPageState extends State<EnterPage> {
   final TextEditingController _textEditingController = TextEditingController();
-  List<Consumer> consumers;
-  List<RTCVideoRenderer> _localRenderers;
-  bool join = false;
-  RoomClient roomClient;
 
   @override
   void initState() {
     super.initState();
-
-    consumers = [];
-    _localRenderers = [];
 
     _textEditingController.addListener(() {
       final String text = _textEditingController.text.toLowerCase();
@@ -40,30 +32,6 @@ class _EnterPageState extends State<EnterPage> {
         ),
         composing: TextRange.empty,
       );
-    });
-
-    roomClient = RoomClient(
-        roomId: 'umohtbqv',
-        url: 'wss://v3demo.mediasoup.org:4443',
-        displayName: nouns.take(1).first,
-        peerId: 'zxcvvczx',
-        onConsumer: addConsumer);
-    roomClient.join();
-  }
-
-  Future<void> addConsumer(Consumer consumer) async {
-    if (consumer.kind == 'audio' ) {
-      return;
-    }
-    final renderer = RTCVideoRenderer();
-    await renderer.initialize();
-    final mediaStream = await createLocalMediaStream(consumer.id);
-    await mediaStream.addTrack(consumer.track);
-    renderer.srcObject = mediaStream;
-
-    consumers.add(consumer);
-    setState(() {
-      _localRenderers.add(renderer);
     });
   }
 
@@ -91,21 +59,9 @@ class _EnterPageState extends State<EnterPage> {
                 hintText: 'Room url',
               ),
             ),
-            ..._localRenderers.map((renderer) {
-              return OrientationBuilder(
-                builder: (context, orientation) {
-                  return Center(
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                      width: 480,
-                      height: 240,
-                      decoration: BoxDecoration(color: Colors.black54),
-                      child: RTCVideoView(renderer, mirror: true),
-                    ),
-                  );
-                },
-              );
-            }),
+            TextButton(onPressed: () {
+              Navigator.pushNamed(context, Room.RoutePath, arguments: _textEditingController.value.text.toLowerCase());
+            }, child: Text('Join'),),
           ],
         ),
       ),
@@ -118,8 +74,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
-      routes: {
-        EnterPage.RoutePath: (context) => EnterPage(),
+      // ignore: missing_return
+      onGenerateRoute: (settings) {
+        if (settings.name == EnterPage.RoutePath) {
+          return MaterialPageRoute(builder: (context) => EnterPage(),);
+        }
+        if (settings.name == Room.RoutePath) {
+          return MaterialPageRoute(builder: (context) => Room(url: settings.arguments,),);
+        }
       },
     );
   }
