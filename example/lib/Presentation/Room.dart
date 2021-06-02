@@ -1,12 +1,12 @@
 import 'dart:math' show Random;
 
+import 'package:example/room_client.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
-import 'package:example/room_client.dart';
-import 'package:flutter/material.dart';
-import 'package:random_words/random_words.dart' show nouns;
 import 'package:random_string/random_string.dart' show randomAlpha;
+import 'package:random_words/random_words.dart' show nouns;
 
 class Room extends StatefulWidget {
   static const String RoutePath = '/room';
@@ -57,8 +57,6 @@ class _RoomState extends State<Room> {
         roomId: uri.queryParameters['roomid'] ?? randomAlpha(8).toLowerCase(),
         peerId: randomAlpha(8),
         url: 'wss://${uri.host}:4443',
-        onConsumer: addConsumer,
-        onProducer: onProducer,
       );
     } else {
       roomClient = RoomClient(
@@ -66,12 +64,13 @@ class _RoomState extends State<Room> {
         roomId: randomAlpha(8),
         peerId: randomAlpha(8),
         url: 'wss://v3demo.mediasoup.org:4443',
-        onConsumer: addConsumer,
-        onProducer: onProducer,
       );
     }
 
     roomClient.join();
+
+    roomClient.on('addConsumer', addConsumer);
+    roomClient.on('onProducer', onProducer);
   }
 
   @override

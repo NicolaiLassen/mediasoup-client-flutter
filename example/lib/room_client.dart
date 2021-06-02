@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:events2/events2.dart';
 import 'package:example/web_socket.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:mediasoup_client_flutter/mediasoup_client_flutter.dart';
 
-class RoomClient {
+class RoomClient extends EventEmitter {
   final String roomId;
   final String peerId;
   final String url;
@@ -26,16 +27,12 @@ class RoomClient {
   Map<String, MediaDeviceInfo> _webcams = {};
   bool _produce = false;
   bool _consume = true;
-  Function onConsumer;
-  Function onProducer;
 
   RoomClient({
     this.roomId,
     this.peerId,
     this.url,
     this.displayName,
-    this.onConsumer,
-    this.onProducer,
   });
 
   void close() {
@@ -91,7 +88,7 @@ class RoomClient {
       _micProducer.on('trackended', () {
         disableMic().catchError((data) {});
       });
-    } else if (producer.source == 'webcam'){
+    } else if (producer.source == 'webcam') {
       _webcamProducer = producer;
 
       _webcamProducer.on('transportclose', () {
@@ -102,10 +99,11 @@ class RoomClient {
         disableWebcam().catchError((data) {});
       });
     }
-    onProducer?.call(producer);
+
+    emit("onProducer", producer);
   }
 
-  void _consumerCallback(dynamic consumer, dynamic accept) {
+  void _consumerCallback(Consumer consumer, dynamic accept) {
     _consumers[consumer.id] = consumer;
 
     consumer.on('transportclose', () {
@@ -115,8 +113,8 @@ class RoomClient {
     ScalabilityMode scalabilityMode = ScalabilityMode.parse(
         consumer.rtpParameters.encodings.first.scalabilityMode);
 
+    emit("addConsumer", consumer);
     accept({});
-    onConsumer?.call(consumer);
   }
 
   Future<MediaStream> createAudioStream() async {
@@ -191,7 +189,8 @@ class RoomClient {
               .request('connectWebRtcTransport', {
                 'transportId': _sendTransport.id,
                 'dtlsParameters': data['dtlsParameters'].toMap(),
-              }).then(data['callback'])
+              })
+              .then(data['callback'])
               .catchError(data['errback']);
         });
 
@@ -300,8 +299,7 @@ class RoomClient {
     try {
       RtpCodecCapability codec = _mediasoupDevice.rtpCapabilities.codecs
           .firstWhere(
-              (RtpCodecCapability c) =>
-                  c.mimeType.toLowerCase() == 'video/vp9',
+              (RtpCodecCapability c) => c.mimeType.toLowerCase() == 'video/vp9',
               orElse: () =>
                   throw 'desired vp9 codec+configuration is not supported');
       videoStream = await createVideoStream();
@@ -326,7 +324,6 @@ class RoomClient {
         await videoStream.dispose();
       }
     }
-
   }
 
   void enableMic() async {
@@ -423,44 +420,47 @@ class RoomClient {
           {
             break;
           }
-        case 'consumerClosed': {
-          String consumerId = notification['data']['consumerId'];
-          Consumer consumer = _consumers[consumerId];
+        case 'consumerClosed':
+          {
+            String consumerId = notification['data']['consumerId'];
+            Consumer consumer = _consumers[consumerId];
 
-          if (consumer == null) {
+            if (consumer == null) {
+              break;
+            }
+
+            await consumer.close();
+            _consumers.remove(consumerId);
+
+            var peerId = consumer.appData['peerId'];
+
+            break;
+          }
+        case 'consumerPaused':
+          {
+            String consumerId = notification['data']['consumerId'];
+            Consumer consumer = _consumers[consumerId];
+
+            if (consumer == null) {
+              break;
+            }
+
+            consumer.pause();
             break;
           }
 
-          await consumer.close();
-          _consumers.remove(consumerId);
+        case 'consumerResumed':
+          {
+            String consumerId = notification['data']['consumerId'];
+            Consumer consumer = _consumers[consumerId];
 
-          var peerId = consumer.appData['peerId'];
+            if (consumer == null) {
+              break;
+            }
 
-          break;
-        }
-        case 'consumerPaused': {
-          String consumerId = notification['data']['consumerId'];
-          Consumer consumer = _consumers[consumerId];
-
-          if (consumer == null) {
+            consumer.resume();
             break;
           }
-
-          consumer.pause();
-          break;
-        }
-
-        case 'consumerResumed': {
-          String consumerId = notification['data']['consumerId'];
-          Consumer consumer = _consumers[consumerId];
-
-          if (consumer == null) {
-            break;
-          }
-
-          consumer.resume();
-          break;
-        }
       }
     };
   }
